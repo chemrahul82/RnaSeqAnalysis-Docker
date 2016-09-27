@@ -1,0 +1,64 @@
+Sending build context to Docker daemon  7.68 kB
+Step 1 : FROM python:2.7-slim
+ ---> 387faf8426c1
+Step 2 : MAINTAINER Rahul K. Das, https://github.com/chemrahul82
+ ---> Using cache
+ ---> ec2b03251cbc
+Step 3 : RUN mkdir -p /usr/local/bin
+ ---> Using cache
+ ---> 538e45964471
+Step 4 : WORKDIR /usr/local/bin
+ ---> Using cache
+ ---> 7efafc3ead35
+Step 5 : RUN apt-get update && apt-get install -y build-essential zlib1g-dev git dtrx wget curl && git clone https://github.com/alexdobin/STAR.git && cd STAR && make STAR
+ ---> Using cache
+ ---> 2c6f1186207a
+Step 6 : ENV PATH $PATH:/usr/local/bin:/usr/local/bin/STAR/bin/Linux_x86_64
+ ---> Using cache
+ ---> f0d80bf0ad66
+Step 7 : RUN for i in `seq 1 19`; do wget -q ftp://ftp.ensembl.org/pub/release-78/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna_rm.chromosome.$i.fa.gz && gunzip Mus_musculus.GRCm38.dna_rm.chromosome.$i.fa.gz && sed "1s/.*/>chr$i/" Mus_musculus.GRCm38.dna_rm.chromosome.$i.fa > chr$i.fa && rm Mus_musculus.GRCm38.dna_rm.chromosome.$i.fa;done
+ ---> Running in 1ce4d0df6e58
+ ---> c30bf6b0be9c
+Removing intermediate container 1ce4d0df6e58
+Step 8 : RUN for i in X Y; do wget -q ftp://ftp.ensembl.org/pub/release-78/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna_rm.chromosome.$i.fa.gz && gunzip Mus_musculus.GRCm38.dna_rm.chromosome.$i.fa.gz && sed "1s/.*/>chr$i/" Mus_musculus.GRCm38.dna_rm.chromosome.$i.fa > chr$i.fa && rm Mus_musculus.GRCm38.dna_rm.chromosome.$i.fa;done
+ ---> Running in 47f16e278e9a
+ ---> 14d6b48f8550
+Removing intermediate container 47f16e278e9a
+Step 9 : RUN curl -s "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=34538597&rettype=fasta&retmode=text" | sed "1s/.*/>chrM/" > chrM.fa
+ ---> Running in b2cb1174aff0
+ ---> cf5cbaa49d87
+Removing intermediate container b2cb1174aff0
+Step 10 : RUN cat `ls  *.fa | sort -V | grep -i -v chrM ` chrM.fa | sed '/^$/d' > mm10.fasta
+ ---> Running in 68e3446f32a3
+ ---> c197a8dcf618
+Removing intermediate container 68e3446f32a3
+Step 11 : RUN rm chr*
+ ---> Running in 32af5a5f4508
+ ---> 2659df256b87
+Removing intermediate container 32af5a5f4508
+Step 12 : RUN wget -q ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M4/gencode.vM4.annotation.gtf.gz && gunzip gencode.vM4.annotation.gtf.gz && mv gencode.vM4.annotation.gtf gene.gtf
+ ---> Running in 6fdb3d3281dc
+ ---> 5ec08a17d170
+Removing intermediate container 6fdb3d3281dc
+Step 13 : RUN mkdir -p /usr/local/bin/star_idx_mm10 && STAR --runThreadN 16 --runMode genomeGenerate --genomeDir /usr/local/bin/star_idx_mm10 --genomeFastaFiles mm10.fasta --sjdbGTFfile gene.gtf --sjdbOverhang 75
+ ---> Running in c18b4f7bc478
+Aug 18 04:51:54 ..... started STAR run
+Aug 18 04:51:54 ... starting to generate Genome files
+Aug 18 04:52:37 ... starting to sort Suffix Array. This may take a long time...
+Aug 18 04:52:49 ... sorting Suffix Array chunks and saving them to disk...
+Aug 18 04:58:02 ... loading chunks from disk, packing SA...
+Aug 18 04:58:46 ... finished generating suffix array
+Aug 18 04:58:46 ... generating Suffix Array index
+Aug 18 05:01:24 ... completed Suffix Array index
+Aug 18 05:01:24 ..... processing annotations GTF
+Aug 18 05:01:32 ..... inserting junctions into the genome indices
+Aug 18 05:03:07 ... writing Genome to disk ...
+Aug 18 05:03:09 ... writing Suffix Array to disk ...
+Aug 18 05:03:18 ... writing SAindex to disk
+Aug 18 05:03:22 ..... finished successfully
+ ---> fe6503f09204
+Removing intermediate container c18b4f7bc478
+Step 14 : COPY STAR.py /usr/local/bin/STAR.py
+ ---> 18ecd488b6e5
+Removing intermediate container 19942397a469
+Successfully built 18ecd488b6e5
